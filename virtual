@@ -1,0 +1,113 @@
+#!/bin/bash
+
+if ! test `id -u` -eq 0; then
+	echo "Permission denied";
+	exit 0
+fi
+
+# Global varible.
+APACHE_SITE_DIR="/etc/apache2/sites-available";
+ERRORLOG="/var/log/apache2/error.log"
+CUSTOM="/var/log/apache2/access.log"
+LOGLEV="warn"
+
+usage() {
+echo "usage: 
+ mk-virtual-host -r <docroot> -t http <servername>
+ mk-virtual-host -r <docroot> -t https <servername>
+ -r, --docroot le documentroot, répertoire ou le serveur va trouvé les fichiers à servir.
+ -t, --type le type de connection https|http par defaut -t=http
+"
+}
+
+addVHost() {
+
+# Variable global
+SERVERNAME=""
+HTTP=""
+C=0
+
+case $# in
+		3)
+			if (( "$1" == "-r" || "$1" == "--docroot" )); then
+				if [ ! -d "$2" ]; then
+					usage	
+					exit 1
+				else
+					if [ -f $APACHE_SITE_DIR/$3".conf" ]; then
+						echo "Ce domaine existe"
+						exit 1
+					else
+						DOCROOT=$2
+						SERVERNAME=$3
+						HTTP=80
+						C=1
+					fi
+				fi
+			else
+				usage
+				exit 1
+			fi
+		;;
+
+		5)
+			echo "In work"
+		;;
+
+		*)
+			usage
+			exit 1
+		;;
+esac
+
+echo $SERVERNAME
+
+if (( $C == 1 )); then
+	echo "<VirtualHost *:$HTTP>
+	ServerName $SERVERNAME
+	DocumentRoot $DOCROOT
+	<Directory $DOCROOT/>
+		Options Multiviews FollowSymLinks
+		require all granted
+	</Directory>
+		ErrorLog $ERRORLOG
+		CustomLog $CUSTOM combined
+		LogLevel $LOGLEV
+</VirtualHost>" > $APACHE_SITE_DIR/$SERVERNAME".conf"
+	cd $APACHE_SITE_DIR
+	a2ensite $SERVERNAME".conf" > /dev/null 2>&1
+	if `service apache2 reload > /dev/null 2>&1`; then
+		echo "127.0.0.1 $SERVERNAME" >> /etc/hosts
+		echo -e "\033[1;23mDone\033[00m"
+		exit 0
+	else
+		echo -e "\033[1;25mUne erreur est survenu\033[00m"
+		a2dissite $SERVERNAME".conf" > /dev/null
+		rm $APACHE_SITE_DIR/$SERVERNAME".conf"
+		exit 1
+	fi
+else
+	echo -e "\033[1;33mError\033[00m"
+	exit 1
+fi
+
+}
+
+# busness logic
+if (( "$1" == "add" )); then
+	if (( $# == 4 )); then
+		addVHost $2 $3 $4:
+		exit 0
+	else
+		addVHost $2 $3 $4 $6 $7
+		exit 0
+	fi
+elif (( "$1" == "remove" )); then
+	removeVHost $2
+	exit 0
+else
+	usage
+	exit 1
+fi
+
+
