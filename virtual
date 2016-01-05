@@ -17,8 +17,6 @@ fi
 
 # Global varible.
 APACHE_SITE_DIR="/etc/apache2/sites-available";
-ERRORLOG="/var/log/apache2/error.log"
-CUSTOM="/var/log/apache2/access.log"
 LOGLEV="warn"
 
 usage() {
@@ -64,17 +62,21 @@ esac
 if (( $C == 1 )); then
 
 echo "<VirtualHost *:$HTTP>
+	
 	ServerName $SERVERNAME
 	serverAlias www.$SERVERNAME
 	DocumentRoot $DOCROOT
+
 	<Directory $DOCROOT/>
 		Options Multiviews FollowSymLinks
 		AllowOverride All
 		require all granted
 	</Directory>
-		ErrorLog $ERRORLOG
-		CustomLog $CUSTOM combined
-		LogLevel $LOGLEV
+	
+	ErrorLog "$DOCROOT/error.log"
+	CustomLog "$DOCROOT/access.log" combined
+	LogLevel $LOGLEV
+
 </VirtualHost>" > $APACHE_SITE_DIR/$SERVERNAME".conf"
 
 	cd $APACHE_SITE_DIR
@@ -116,10 +118,9 @@ remove_vhost() {
 
 		# suppression du fichier de la configuration
 		rm "${1}.conf"
-		R="s/\n?127.0.0.1\s${1}\swww.${1}$//"
 
 		# suppression de l'entrer du domaine dans le fichier /etc/hosts
-		sed -re "$R" < /etc/hosts > /tmp/hosts
+		sed -re "/^\n?127\.0\.0\.1\s+${1}\swww.${1}\n?$/ d" < /etc/hosts > /tmp/hosts
 
 		if [ -s /tmp/hosts ]; then
 			cp /tmp/hosts /etc/hosts
