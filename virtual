@@ -73,8 +73,8 @@ echo "<VirtualHost *:$HTTP>
 		require all granted
 	</Directory>
 	
-	ErrorLog "$DOCROOT/error.log"
-	CustomLog "$DOCROOT/access.log" combined
+	ErrorLog "$DOCROOT/.logs/error.log"
+	CustomLog "$DOCROOT/.logs/access.log" combined
 	LogLevel $LOGLEV
 
 </VirtualHost>" > $APACHE_SITE_DIR/$SERVERNAME".conf"
@@ -85,6 +85,7 @@ echo "<VirtualHost *:$HTTP>
 	if `service apache2 reload > /dev/null 2>&1`; then
 
 		chmod 755 -R $DOCROOT
+
 		echo "127.0.0.1 $SERVERNAME www.$SERVERNAME" >> /etc/hosts
 		c_echo "Domaine créé avec succés.[DONE]" "green"
 		exit 0
