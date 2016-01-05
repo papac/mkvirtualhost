@@ -68,7 +68,7 @@ echo "<VirtualHost *:$HTTP>
 	DocumentRoot $DOCROOT
 
 	<Directory $DOCROOT/>
-		Options Multiviews FollowSymLinks
+		Options Indexes Multiviews FollowSymLinks
 		AllowOverride All
 		require all granted
 	</Directory>
