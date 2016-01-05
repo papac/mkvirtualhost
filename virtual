@@ -64,6 +64,7 @@ if (( $C == 1 )); then
 
 echo "<VirtualHost *:$HTTP>
 	ServerName $SERVERNAME
+	serverAlias www.$SERVERNAME
 	DocumentRoot $DOCROOT
 	<Directory $DOCROOT/>
 		Options Multiviews FollowSymLinks
@@ -81,7 +82,7 @@ echo "<VirtualHost *:$HTTP>
 	if `service apache2 reload > /dev/null 2>&1`; then
 
 		chmod 776 -R $DOCROOT
-		echo "127.0.0.1 $SERVERNAME" >> /etc/hosts
+		echo "127.0.0.1 $SERVERNAME www.$SERVERNAME" >> /etc/hosts
 		c_echo "Done" "green"
 		exit 0
 
@@ -111,9 +112,11 @@ remove_vhost() {
 		cd $APACHE_SITE_DIR
 		a2dissite "${1}.conf"
 		service apache2 reload
+
 		# suppression du fichier de la configuration
 		rm "${1}.conf"
-		R="s/\n?127.0.0.1\s${1}$//"
+		R="s/\n?127.0.0.1\s${1}\swww.${1}$//"
+
 		# suppression de l'entrer du domaine dans le fichier /etc/hosts
 		sed -re "$R" < /etc/hosts > /tmp/hosts
 
