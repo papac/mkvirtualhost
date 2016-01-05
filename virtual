@@ -1,16 +1,5 @@
 #!/bin/bash
 
-if ! test `id -u` -eq 0; then
-	echo "Permission non authorisé";
-	exit 0
-fi
-
-# Global varible.
-APACHE_SITE_DIR="/etc/apache2/sites-available";
-ERRORLOG="/var/log/apache2/error.log"
-CUSTOM="/var/log/apache2/access.log"
-LOGLEV="warn"
-
 c_echo() {
 	if [[ $2 == "red" ]]; then
 		echo -e "\033[0;31m$1\033[00m"
@@ -21,7 +10,19 @@ c_echo() {
 	fi
 }
 
+if ! test `id -u` -eq 0; then
+	c_echo "Permission non authorisé" "red";
+	exit 0
+fi
+
+# Global varible.
+APACHE_SITE_DIR="/etc/apache2/sites-available";
+ERRORLOG="/var/log/apache2/error.log"
+CUSTOM="/var/log/apache2/access.log"
+LOGLEV="warn"
+
 usage() {
+
 echo "usage:
  mk-virtual-host add <docroot> <servername>
  mk-virtual-host remove <servername>
