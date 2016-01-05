@@ -84,9 +84,9 @@ echo "<VirtualHost *:$HTTP>
 
 	if `service apache2 reload > /dev/null 2>&1`; then
 
-		chmod 776 -R $DOCROOT
+		chmod 755 -R $DOCROOT
 		echo "127.0.0.1 $SERVERNAME www.$SERVERNAME" >> /etc/hosts
-		c_echo "Done" "green"
+		c_echo "Domaine créé avec succés.[DONE]" "green"
 		exit 0
 
 	else
