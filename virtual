@@ -1,62 +1,122 @@
 #!/bin/bash
 
-c_echo() {
-	if [[ $2 == "red" ]]; then
-		echo -e "\033[0;31m$1\033[00m"
-	elif [[ $2 == "green" ]]; then
-		echo -e "\033[0;32m$1\033[00m";
-	else
-		echo -e "\033[0;35m$1\033[00m"
-	fi
-}
+APACHE_SITE_DIR="/etc/apache2/sites-available";
 
+# fr: vérifie si vous êtes le root
+# en: verify if you have root privilege
 if ! test `id -u` -eq 0; then
+	
 	c_echo "Permission non authorisé" "red";
 	exit 0
+
 fi
 
-# Global varible.
-APACHE_SITE_DIR="/etc/apache2/sites-available";
-LOGLEV="warn"
+# fr: colorie un message de sortie.
+# en: color a output message
+c_echo() {
 
+	if [[ $2 == "red" ]]; then
+	
+		echo -e "\033[0;31m$1\033[00m"
+	
+	elif [[ $2 == "green" ]]; then
+	
+		echo -e "\033[0;32m$1\033[00m";
+	
+	else
+		
+		echo -e "\033[0;35m$1\033[00m"
+	
+	fi
+
+}
+
+# fr: vérifie si un programme exist, sinon vous demande si vous voulez l'installé
+# en: verify if a program exist, else tell you if you want install it
+prog_exist() {
+
+if ! test `which $1`; then
+
+	c_echo "$1 not found" "red"
+	echo "You want install it? y/n: "
+	read -r response
+	
+	if [[ $reponse == "y" ]]; then
+
+		apt-get install $1 -y > /dev/null
+		exit 0
+
+	fi
+
+	exit 1
+
+fi
+
+}
+
+# fr: fonction `usage`
+# en: `usage` function
 usage() {
 
-echo "usage:
- mk-virtual-host add <docroot> <servername>
+echo "
+usage:
+ 
+ mk-virtual-host add <docroot> <servername> [--with-git]
  mk-virtual-host remove <servername>
+ [facultatif]
 
- <docroot> le documentroot, répertoire ou le serveur va trouvé les fichiers à servir.
- <servername> le nom de domaine sur projet
+ [fr]
+ <docroot>     répertoire ou le serveur va trouvé les fichiers à servir.
+ <servername>  le nom de domaine sur projet
+ --with-git 	 initialise un dépot git. 
+ 
+ [en]
+ <docroot>     documentroot.
+ <servername>  you project domain name.
+ --with-git    initialize git repository if is check
 "
 }
 
+# fr: fonction d'ajout de configuration
+# en: add configuration function
 add_vhost() {
 
-# Variable global
+# fr: Variable global
+# en: Global variable
 SERVERNAME=""
 HTTP=80
 C=0
+LOGLEV="warn"
 
 case $# in
-		2)
+		
+	2|3)
 			if [ ! -d "$1" ]; then
+				
 				usage
 				exit 1
+			
 			else
+				
 				if [ -f $APACHE_SITE_DIR/$2".conf" ]; then
-					c_echo "Ce domaine existe" "red"
+					
+					c_echo "This domaine already exist." "red"
 					exit 1
+
 				else
+				
 					DOCROOT=$1
 					SERVERNAME=$2
 					C=1
+				
 				fi
+
 			fi
-		;;
-		*)
+	;;
+	*)
 			usage
 			exit 1
-		;;
+	;;
 esac
 
 if (( $C == 1 )); then
@@ -82,18 +142,39 @@ echo "<VirtualHost *:$HTTP>
 	cd $APACHE_SITE_DIR
 	a2ensite $SERVERNAME".conf" > /dev/null 2>&1
 
+	if [ ! -d "$DOCROOT/.logs" ]; then
+	
+		mkdir "$DOCROOT/.logs" > /dev/null 2>&1
+	
+	fi
+
 	if `service apache2 reload > /dev/null 2>&1`; then
 
 		chmod 755 -R $DOCROOT
 
+		if [[ "$3" == "--with-git" ]]; then
+			
+			if prog_exist "git"; then
+
+				cd $DOCROOT
+				git init > /dev/null
+				echo "Git repository has initilazed."
+	
+			fi
+
+		fi
+
 		echo "127.0.0.1 $SERVERNAME www.$SERVERNAME" >> /etc/hosts
-		c_echo "Domaine créé avec succés.[DONE]" "green"
+		c_echo "Project domain has created." "green"
+		
 		exit 0
 
 	else
 
-		c_echo "Une erreur est survenu" "red"
+		echo "Here2"
+		c_echo "An error is comming" "red"
 		a2dissite $SERVERNAME".conf" > /dev/null
+		
 		rm $APACHE_SITE_DIR/$SERVERNAME".conf"
 		exit 1
 
@@ -101,26 +182,31 @@ echo "<VirtualHost *:$HTTP>
 
 else
 
-	c_echo "Une erreur est survenu" "red"
+	c_echo "An error is comming." "red"
 	exit 1
 
 fi
 
 }
 
+# fr: fonction de suppression de configuration
+# en: delete configuration function
 remove_vhost() {
 
 	if [ -f "$APACHE_SITE_DIR/$1.conf" ]; then
 
-		# suppression de la configuration
+		# fr: désactivation de la configuration
+		# en: disable configuration
 		cd $APACHE_SITE_DIR
 		a2dissite "${1}.conf"
-		service apache2 reload
+		service apache2 reload > /dev/null
 
-		# suppression du fichier de la configuration
+		# fr: suppression du fichier de la configuration
+		# en: delete configuration file
 		rm "${1}.conf"
 
-		# suppression de l'entrer du domaine dans le fichier /etc/hosts
+		# fr: suppression de l'entrer du domaine dans le fichier /etc/hosts
+		# en: delete domaine name in /etc/hosts
 		sed -re "/^\n?127\.0\.0\.1\s+${1}\swww.${1}\n?$/ d" < /etc/hosts > /tmp/hosts
 
 		if [ -s /tmp/hosts ]; then
@@ -131,7 +217,7 @@ remove_vhost() {
 
 	else
 
-		c_echo "Ce domain n'existe pas!" "red"
+		c_echo "This domaine not exist." "red"
 		exit 1
 
 	fi
@@ -141,9 +227,11 @@ remove_vhost() {
 # busness logic
 PARAM=$1
 
+prog_exist "apache2"
+
 if [[ $PARAM == "add" ]]; then
-	if (( $# == 3 )); then
-		add_vhost $2 $3
+	if [ $# -eq "3" -o $# -eq "4" ]; then
+		add_vhost $2 $3 $4
 		exit 0
 	else
 		usage
