@@ -2,13 +2,6 @@
 
 APACHE_SITE_DIR="/etc/apache2/sites-available";
 
-# fr: vérifie si vous êtes le root
-# en: verify if you have root privilege
-if ! test `id -u` -eq 0; then
-	c_echo "Permission non authorisé" "red";
-	exit 1
-fi
-
 # fr: colorie un message de sortie.
 # en: color a output message
 c_echo() {
@@ -20,6 +13,13 @@ c_echo() {
 		echo -e "\033[0;35m$1\033[00m"
 	fi
 }
+
+# fr: vérifie si vous êtes le root
+# en: verify if you have root privilege
+if ! test `id -u` -eq 0; then
+	c_echo "Permission non authorisé" "red";
+	exit 1
+fi
 
 # fr: vérifie si un programme exist, sinon vous demande si vous voulez l'installé
 # en: verify if a program exist, else tell you if you want install it
@@ -150,11 +150,11 @@ echo "<VirtualHost *:$HTTP>
 			if prog_exist "git"; then
 				cd $DOCROOT
 				git init > /dev/null
-				echo "Git repository has initilazed."
+				echo "✓ Git repository has initilazed."
 			fi
 		fi
 		echo "127.0.0.1 $SERVERNAME www.$SERVERNAME" >> /etc/hosts
-		c_echo "Project domain has created." "green"
+		c_echo "✓ Project domain has created." "green"
 		exit 0
 	else
 		c_echo "An error is comming" "red"
