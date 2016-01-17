@@ -161,7 +161,7 @@ echo "<VirtualHost *:$HTTP>
 	cd $APACHE_SITE_DIR
 	a2ensite $SERVERNAME".conf" > /dev/null 2>&1
 	if `service apache2 reload > /dev/null`; then
-		chmod 755 -R $DOCROOT
+		chmod 777 -R $DOCROOT
 		if [ "$3" == "--with-git" -o "$4" == "--with-git" ]; then
 			if prog_exist "git"; then
 				cd $DOCROOT
