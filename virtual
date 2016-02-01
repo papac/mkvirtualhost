@@ -13,6 +13,15 @@ else
 fi
 }
 
+# Verif the domain definition
+verify_domain() {
+	if ! expr $1 : '^[a-z0-9_-]\+\.[a-z]\{2,\}$' >> /dev/null; then
+		c_echo "✗ domain is not valid" "red"
+		c_echo "eg: domain.dev"
+		exit 1
+	fi
+}
+
 # verify if a program exist, else tell you if you want install it
 prog_exist() {
 if ! test `which $1`; then
@@ -127,9 +136,9 @@ if [ -f $APACHE_SITE_DIR/$2".conf" ]; then
 	c_echo "✗ this domaine already exist." "red"
 	exit 1
 else
-		DOCROOT=$1
-		SERVERNAME=$2
-		C=1	
+	DOCROOT=$1
+	SERVERNAME=$2
+	C=1
 fi
 for option in $@; do
 	if [ $option == "--with-local-log" ]; then
@@ -165,8 +174,12 @@ echo "<VirtualHost *:$HTTP>
 		if [ "$3" == "--with-git" -o "$4" == "--with-git" ]; then
 			if prog_exist "git"; then
 				cd $DOCROOT
-				git init > /dev/null
-				c_echo "✓ git repository has initilazed."
+				if [ ! -d ".git" ]; then
+					git init > /dev/null
+					c_echo "✓ Initialized empty git repository."
+				else
+					c_echo "✗ git repository is alrealy initilazed." "red"
+				fi
 			fi
 		fi
 		echo "127.0.0.1 $SERVERNAME www.$SERVERNAME" >> /etc/hosts
@@ -214,6 +227,7 @@ fi
 prog_exist "apache2"
 
 if [[ $PARAM == "add" ]]; then
+	verify_domain $2
 	case $# in
 		3) add_vhost $2 $3 ;;
 		4) add_vhost $2 $3 $4 ;;
@@ -222,6 +236,7 @@ if [[ $PARAM == "add" ]]; then
 		   exit 1 ;;
 	esac
 elif [[ $PARAM == "remove" ]]; then
+	verify_domain $2
 	remove_vhost $2
 	exit 0
 elif [[ $PARAM == "list" ]]; then
