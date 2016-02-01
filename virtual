@@ -227,7 +227,7 @@ fi
 prog_exist "apache2"
 
 if [[ $PARAM == "add" ]]; then
-	verify_domain $2
+	verify_domain $3
 	case $# in
 		3) add_vhost $2 $3 ;;
 		4) add_vhost $2 $3 $4 ;;
