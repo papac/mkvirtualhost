@@ -26,7 +26,7 @@ verify_domain() {
 prog_exist() {
 if ! test `which $1`; then
 	c_echo "✗ $1 not found" "red"
-	echo -n "You want install it? Y/y/yes/*: "
+	echo -n "Do you want install it? Y/n: "
 	read -r response
 	case $response in
 		"Y"|"y"|"yes"|"")
@@ -113,25 +113,30 @@ echo -e "$EG"
 
 # add configuration function
 add_vhost() {
-SERVERNAME=""
-HTTP=80
-C=0
-LOGLEV="warn"
-ERRORLOGDIR="$APACHE_LOG_DIR/error.log";
-ACCESSLOGDIR="$APACHE_LOG_DIR/error.log";
+
+local SERVERNAME=""
+local HTTP=80
+local C=0
+
+local LOGLEV="warn"
+local ERRORLOGDIR="$APACHE_LOG_DIR/error.log";
+local ACCESSLOGDIR="$APACHE_LOG_DIR/error.log";
+
 if [ ! -d "$1" ]; then
 	c_echo "✗ $1 are not directory" "red"
-	echo -n "You want create it Y/y/yes/*: "
+	echo -n "Do you want create it? Y/n: "
 	read -r response
 	case $response in
 		"Y"|"y"|"yes"|"")
-				mkdir -p $1
-			;;
+			mkdir -p $1
+			chown 1000:1000 -R $1
+		;;
 		*)
-			exit 1
-			;;
+		exit 1
+		;;
 	esac
 fi
+
 if [ -f $APACHE_SITE_DIR/$2".conf" ]; then
 	c_echo "✗ this domaine already exist." "red"
 	exit 1
@@ -140,16 +145,19 @@ else
 	SERVERNAME=$2
 	C=1
 fi
-for option in $@; do
-	if [ $option == "--with-local-log" ]; then
-		if [ ! -d "$DOCROOT/.syslog" ]; then
-			mkdir "$DOCROOT/.syslog"
-		fi
-		ERRORLOGDIR="$DOCROOT/.syslog/error.log";
-		ACCESSLOGDIR="$DOCROOT/.syslog/access.log";
-	fi
-done
+
 if [[ $C == 1 ]]; then
+
+	for option in $@; do
+		if [ $option == "--with-local-log" ]; then
+			if [ ! -d "$DOCROOT/.syslog" ]; then
+				mkdir "$DOCROOT/.syslog"
+			fi
+			ERRORLOGDIR="$DOCROOT/.syslog/error.log";
+			ACCESSLOGDIR="$DOCROOT/.syslog/access.log";
+		fi
+	done
+
 echo "<VirtualHost *:$HTTP>
 	
 	ServerName $SERVERNAME
@@ -170,7 +178,7 @@ echo "<VirtualHost *:$HTTP>
 	cd $APACHE_SITE_DIR
 	a2ensite $SERVERNAME".conf" > /dev/null 2>&1
 	if `service apache2 reload > /dev/null`; then
-		chmod 777 -R $DOCROOT
+		chmod 775 -R $DOCROOT
 		if [ "$3" == "--with-git" -o "$4" == "--with-git" ]; then
 			if prog_exist "git"; then
 				cd $DOCROOT
@@ -195,21 +203,27 @@ else
 	c_echo "✗ an error is comming." "red"
 	exit 1
 fi
+
 }
 
 # delete configuration function
 remove_vhost() {
+	
 	if [ -f "$APACHE_SITE_DIR/$1.conf" ]; then
+		
 		cd $APACHE_SITE_DIR
-		a2dissite "${1}.conf" > /dev/null
-		service apache2 reload > /dev/null
-		rm "${1}.conf"
+		a2dissite "${1}.conf" > /dev/null 2>&1
+		service apache2 reload > /dev/null 2>&1
+		rm "${1}.conf" 2> /dev/null
 		sed -re "/^\n?127\.0\.0\.1\s+${1}\swww.${1}\n?$/ d" < /etc/hosts > /tmp/hosts
+
 		if [ -s /tmp/hosts ]; then
 			cp /tmp/hosts /etc/hosts
 		fi
+		
 		c_echo "✓ $1 has removed" "green"
 		exit 0
+	
 	else
 		c_echo "✗ this domaine not exist." "red"
 		exit 1
@@ -232,8 +246,7 @@ if [[ $PARAM == "add" ]]; then
 		3) add_vhost $2 $3 ;;
 		4) add_vhost $2 $3 $4 ;;
 		5) add_vhost $2 $3 $4 $5 ;;
-		*) usage
-		   exit 1 ;;
+		*) usage; exit 1 ;;
 	esac
 elif [[ $PARAM == "remove" ]]; then
 	verify_domain $2
@@ -246,8 +259,9 @@ elif [[ $PARAM == "list" ]]; then
 		len=$(expr length $file)
 		end=$(expr $len - 5)
 		file=$(expr substr $file 1 $end)
-		c_echo "☑ $file" "green"
+		c_echo "└ $file" "green"
 	done
+	c_echo "👉 ${i} have available"
 	exit 0
 elif [[ $PARAM == "has" ]]; then
 	if [ -f "$APACHE_SITE_DIR/$2.conf" ]; then
