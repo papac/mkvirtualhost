@@ -151,7 +151,7 @@ if [[ $C == 1 ]]; then
 	for option in $@; do
 		if [ $option == "--with-local-log" ]; then
 			if [ ! -d "$DOCROOT/.syslog" ]; then
-				mkdir "$DOCROOT/.syslog"
+				mkdir -m 777 "$DOCROOT/.syslog"
 			fi
 			ERRORLOGDIR="$DOCROOT/.syslog/error.log";
 			ACCESSLOGDIR="$DOCROOT/.syslog/access.log";
