@@ -260,9 +260,9 @@ elif [[ $PARAM == "list" ]]; then
 		len=$(expr length $file)
 		end=$(expr $len - 5)
 		file=$(expr substr $file 1 $end)
-		c_echo "└ $file" "green"
+		c_echo "-> $file" "green"
 	done
-	c_echo "👉 ${i} have available"
+	c_echo "${i} have available"
 	exit 0
 elif [[ $PARAM == "has" ]]; then
 	if [ -f "$APACHE_SITE_DIR/$2.conf" ]; then
