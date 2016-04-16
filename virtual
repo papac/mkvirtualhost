@@ -44,52 +44,52 @@ fi
 # `usage` function
 usage() {
 DEF=" ─ USAGE:
-   sudo $0 add <docroot> <servername> [--with-git]
-   sudo $0 remove <servername>
-   sudo $0 list
-   sudo $0 has <servername>"
+   sudo virtual add <docroot> <servername> [--with-git]
+   sudo virtual remove <servername>
+   sudo virtual list
+   sudo virtual has <servername>"
 FR="
    ─ \033[0;4mCommande\033[00m
-	   add............Ajout un projet
-	   remove.........Supprimé un projet
-	   has............Informe si le domaine exist
-	   list...........List tout le domaine
+	   add - Ajout un projet
+	   remove - Supprimé un projet
+	   has - Informe si le domaine exist
+	   list - List tout le domaine
 
    ─ \033[0;4mvaleur\033[00m
-	   <docroot>......Répertoire ou le serveur va trouvé les fichiers à servir.
-	   <servername>...Le nom de domaine sur projet
+	   <docroot> - Répertoire ou le serveur va trouvé les fichiers à servir.
+	   <servername> - Le nom de domaine sur projet
 
    ─ \033[0;4moption\033[00m:
-	   --with-git.....Initialise un dépot git. 
-	   --with-local-log.....Ajout les logs générés par appache dans votre documentroot."
+	   --with-git - Initialise un dépot git. 
+	   --with-local-log - Ajout les logs générés par appache dans votre documentroot."
 EN="
    ─ \033[0;4mCommand\033[00m
-	   add............Add project
-	   remove.........Remove project
-	   has............Tell you if domaine exist
-	   list...........List all domaine
+	   add - Add project
+	   remove - Remove project
+	   has - Tell you if domaine exist
+	   list - List all domaine
 
    ─ \033[0;4mvalue\033[00m
-	   <docroot>......Documentroot.
-	   <servername>...You project domain name.
+	   <docroot> - Documentroot.
+	   <servername> - You project domain name.
 
    ─ \033[0;4moption\033[00m:
-	   --with-git.....If has enabled, git repository will be initialize.
-	   --with-local-log.....Add apache logs in you documentroot."
+	   --with-git - If has enabled, git repository will be initialize.
+	   --with-local-log - Add apache logs in you documentroot."
 EG="
    ─ Exemples:
 
     ☑ add
-    $ sudo $0 add /path/to/my/project/folder project.dev
+    $ sudo virtual add /path/to/my/project/folder project.dev
 
     ☑ remove
-    $ sudo $0 remove project.dev
+    $ sudo virtual remove project.dev
 
     ☑ has
-    $ sudo $0 has project.dev
+    $ sudo virtual has project.dev
 
     ☑ list
-    $ sudo $0 list
+    $ sudo virtual list
    
     \033[0;4mFork me\033[00m to https://github.com/papac/mkvirtualhost.git
 "
