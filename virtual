@@ -44,10 +44,10 @@ fi
 # `usage` function
 usage() {
 DEF=" ─ USAGE:
-   sudo virtual add <docroot> <servername> [--with-git]
-   sudo virtual remove <servername>
-   sudo virtual list
-   sudo virtual has <servername>"
+   sudo command add <docroot> <servername> [--with-git] [--with-local-log]
+   sudo command remove <servername>
+   sudo command list
+   sudo command has <servername>"
 FR="
    ─ \033[0;4mCommande\033[00m
 	   add - Ajout un projet
@@ -80,16 +80,16 @@ EG="
    ─ Exemples:
 
     ☑ add
-    $ sudo virtual add /path/to/my/project/folder project.dev
+    $ sudo command add /path/to/my/project/folder project.dev
 
     ☑ remove
-    $ sudo virtual remove project.dev
+    $ sudo command remove project.dev
 
     ☑ has
-    $ sudo virtual has project.dev
+    $ sudo command has project.dev
 
     ☑ list
-    $ sudo virtual list
+    $ sudo command list
    
     \033[0;4mFork me\033[00m to https://github.com/papac/mkvirtualhost.git
 "
@@ -179,7 +179,7 @@ echo "<VirtualHost *:$HTTP>
 	a2ensite $SERVERNAME".conf" > /dev/null 2>&1
 	if `service apache2 reload > /dev/null`; then
 		# chmod 774 -R $DOCROOT
-		chown 1000:1000 -R $DOCROOT
+		# chown 1000:1000 -R $DOCROOT
 		if [ "$3" == "--with-git" -o "$4" == "--with-git" ]; then
 			if prog_exist "git"; then
 				cd $DOCROOT
