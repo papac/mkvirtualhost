@@ -120,7 +120,7 @@ local C=0
 
 local LOGLEV="warn"
 local ERRORLOGDIR="$APACHE_LOG_DIR/error.log";
-local ACCESSLOGDIR="$APACHE_LOG_DIR/error.log";
+# local ACCESSLOGDIR="$APACHE_LOG_DIR/error.log";
 
 if [ ! -d "$1" ]; then
 	c_echo "✗ $1 are not directory" "red"
@@ -154,7 +154,6 @@ if [[ $C == 1 ]]; then
 				mkdir -m 777 "$DOCROOT/.syslog"
 			fi
 			ERRORLOGDIR="$DOCROOT/.syslog/error.log";
-			ACCESSLOGDIR="$DOCROOT/.syslog/access.log";
 		fi
 	done
 
@@ -171,7 +170,7 @@ echo "<VirtualHost *:$HTTP>
 	</Directory>
 	
 	ErrorLog $ERRORLOGDIR
-	CustomLog $ACCESSLOGDIR combined
+	# CustomLog $ACCESSLOGDIR combined
 	LogLevel $LOGLEV
 
 </VirtualHost>" > $APACHE_SITE_DIR/$SERVERNAME".conf"
@@ -191,7 +190,7 @@ echo "<VirtualHost *:$HTTP>
 				fi
 			fi
 		fi
-		echo "127.0.0.1 $SERVERNAME www.$SERVERNAME" >> /etc/hosts
+		echo "127.0.0.1 $SERVERNAME\n 127.0.0.1 www.$SERVERNAME" >> /etc/hosts
 		c_echo "✓ project domain has created." "green"
 		exit 0
 	else
@@ -216,7 +215,7 @@ remove_vhost() {
 		a2dissite "${1}.conf" > /dev/null 2>&1
 		service apache2 reload > /dev/null 2>&1
 		rm "${1}.conf" 2> /dev/null
-		sed -re "/^\n?127\.0\.0\.1\s+${1}\swww.${1}\n?$/ d" < /etc/hosts > /tmp/hosts
+		sed -re "/^\n?127\.0\.0\.1\s+${1}\s*\n127\.0\.0\.1\swww.${1}\n?$/ d" < /etc/hosts > /tmp/hosts
 
 		if [ -s /tmp/hosts ]; then
 			cp /tmp/hosts /etc/hosts
