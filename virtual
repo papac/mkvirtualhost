@@ -120,7 +120,7 @@ local C=0
 
 local LOGLEV="warn"
 local ERRORLOGDIR="$APACHE_LOG_DIR/error.log";
-# local ACCESSLOGDIR="$APACHE_LOG_DIR/error.log";
+local ACCESSLOGDIR="$APACHE_LOG_DIR/access.log";
 
 if [ ! -d "$1" ]; then
 	c_echo "✗ $1 are not directory" "red"
@@ -190,7 +190,7 @@ echo "<VirtualHost *:$HTTP>
 				fi
 			fi
 		fi
-		echo "127.0.0.1 $SERVERNAME\n 127.0.0.1 www.$SERVERNAME" >> /etc/hosts
+		echo "127.0.0.1 $SERVERNAME\n127.0.0.1 www.$SERVERNAME" >> /etc/hosts
 		c_echo "✓ project domain has created." "green"
 		exit 0
 	else
