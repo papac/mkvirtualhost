@@ -242,6 +242,17 @@ display_docroot() {
 	c_echo $r 'green'
 }
 
+domain_exists() {
+	if [ -f "$APACHE_SITE_DIR/$1.conf" ]; then
+		if [ "$2" == 'display' ]; then
+			c_echo "✗ $1 exists" "green"
+		fi
+	else
+		c_echo "✗ $1 not found" "red"
+		exit 1
+	fi
+}
+
 
 # busness logic
 PARAM=$1
@@ -267,11 +278,12 @@ elif [[ $PARAM == "remove" ]]; then
 	exit 0
 elif [[ $PARAM == "docroot-of" ]]; then
 	verify_domain $2
+	domain_exists $2
 	display_docroot $2
 	exit 0
 elif [[ $PARAM == "list" ]]; then
 	i=0
-	for file in `ls /etc/apache2/sites-enabled`; do
+	for file in `ls $APACHE_SITE_DIR`; do
 		i=$(expr $i + 1)
 		len=$(expr length $file)
 		end=$(expr $len - 5)
@@ -281,11 +293,9 @@ elif [[ $PARAM == "list" ]]; then
 	c_echo "${i} have available"
 	exit 0
 elif [[ $PARAM == "has" ]]; then
-	if [ -f "$APACHE_SITE_DIR/$2.conf" ]; then
-		c_echo "✗ $2 exists" "green"
-	else
-		c_echo "✗ $2 not found" "red"
-	fi
+	verify_domain $2
+	domain_exists $2 'display'
+	exit 0
 elif [[ $PARAM == "help" ]]; then
 	usage $PARAM $2
 	exit 0
