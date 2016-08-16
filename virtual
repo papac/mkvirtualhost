@@ -16,7 +16,7 @@ fi
 # Verif the domain definition
 verify_domain() {
 	if ! expr $1 : '^[a-z0-9_-]\+\.[a-z]\{2,\}$' >> /dev/null; then
-		c_echo "✗ domain is not valid" "red"
+		c_echo "✗ domain name is not valid" "red"
 		c_echo "eg: domain.dev"
 		exit 1
 	fi
@@ -47,13 +47,15 @@ DEF=" ─ USAGE:
    sudo command add <docroot> <servername> [--with-git] [--with-local-log]
    sudo command remove <servername>
    sudo command list
-   sudo command has <servername>"
+   sudo command has <servername>
+   sudo command docroot-of <servername>"
 FR="
    ─ \033[0;4mCommande\033[00m
 	   add - Ajout un projet
 	   remove - Supprimé un projet
 	   has - Informe si le domaine exist
 	   list - List tout le domaine
+	   docroot-of - Affiche le docroot
 
    ─ \033[0;4mvaleur\033[00m
 	   <docroot> - Répertoire ou le serveur va trouvé les fichiers à servir.
@@ -68,6 +70,7 @@ EN="
 	   remove - Remove project
 	   has - Tell you if domaine exist
 	   list - List all domaine
+	   docroot-of - Display the document root
 
    ─ \033[0;4mvalue\033[00m
 	   <docroot> - Documentroot.
@@ -80,16 +83,19 @@ EG="
    ─ Exemples:
 
     ☑ add
-    $ sudo command add /path/to/my/project/folder project.dev
+    \033[0;31m$\033[00m] sudo command add /path/to/my/project/folder project.dev
 
     ☑ remove
-    $ sudo command remove project.dev
+    \033[0;31m$\033[00m] sudo command remove project.dev
 
     ☑ has
-    $ sudo command has project.dev
+    \033[0;31m$\033[00m] sudo command has project.dev
 
     ☑ list
-    $ sudo command list
+    \033[0;31m$\033[00m] sudo command list
+
+    ☑ docroot-of
+    \033[0;31m$\033[00m] sudo command docroot-of project.dev
    
     \033[0;4mFork me\033[00m to https://github.com/papac/mkvirtualhost.git
 "
@@ -190,7 +196,7 @@ echo "<VirtualHost *:$HTTP>
 				fi
 			fi
 		fi
-		echo "127.0.0.1 $SERVERNAME\n127.0.0.1 www.$SERVERNAME" >> /etc/hosts
+		echo -e "127.0.0.1 $SERVERNAME\n127.0.0.1 www.$SERVERNAME" >> /etc/hosts
 		c_echo "✓ project domain has created." "green"
 		exit 0
 	else
@@ -215,26 +221,33 @@ remove_vhost() {
 		a2dissite "${1}.conf" > /dev/null 2>&1
 		service apache2 reload > /dev/null 2>&1
 		rm "${1}.conf" 2> /dev/null
-		sed -re "/^\n?127\.0\.0\.1\s+${1}\s*\n127\.0\.0\.1\swww.${1}\n?$/ d" < /etc/hosts > /tmp/hosts
+		sed -re "/^\n?127\.0\.0\.1\s+(www\.)?${1}\n?$/ d" < /etc/hosts > /tmp/hosts
 
 		if [ -s /tmp/hosts ]; then
 			cp /tmp/hosts /etc/hosts
 		fi
 		
-		c_echo "✓ $1 has removed" "green"
+		c_echo "✓ $1 removed" "green"
 		exit 0
 	
 	else
-		c_echo "✗ this domaine not exist." "red"
+		c_echo "✗ $1 not exists" "red"
 		exit 1
 	fi
 }
+
+display_docroot() {
+	local domain=$1
+	r=`sed -n '/DocumentRoot/p' $APACHE_SITE_DIR/$domain.conf | sed -r 's/^\t*DocumentRoot\s*//'`
+	c_echo $r 'green'
+}
+
 
 # busness logic
 PARAM=$1
 
 if ! test `id -u` -eq 0; then
-	c_echo "✗ permission denied" "red";
+	c_echo "✗ permission denied - use administrator privilege" "red";
 	exit 1
 fi
 
@@ -252,6 +265,10 @@ elif [[ $PARAM == "remove" ]]; then
 	verify_domain $2
 	remove_vhost $2
 	exit 0
+elif [[ $PARAM == "docroot-of" ]]; then
+	verify_domain $2
+	display_docroot $2
+	exit 0
 elif [[ $PARAM == "list" ]]; then
 	i=0
 	for file in `ls /etc/apache2/sites-enabled`; do
@@ -265,9 +282,9 @@ elif [[ $PARAM == "list" ]]; then
 	exit 0
 elif [[ $PARAM == "has" ]]; then
 	if [ -f "$APACHE_SITE_DIR/$2.conf" ]; then
-		c_echo "✗ domaine $2 exist." "green"
+		c_echo "✗ $2 exists" "green"
 	else
-		c_echo "✗ domaine $2 not found" "red"
+		c_echo "✗ $2 not found" "red"
 	fi
 elif [[ $PARAM == "help" ]]; then
 	usage $PARAM $2
