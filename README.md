@@ -11,8 +11,8 @@ Install of the mkvirtualhost is very easiest
 ```bash
 $ git clone https://github.com/papac/mkvirtualhost.git --depth=1
 $ cd mkvirtualhost
-$ sudo cp virtual /usr/local/bin/mkvirtaulhost
-$ mkvirtualhost help
+$ sudo cp virtual /usr/local/bin/mkvirtualhost
+$ sudo mkvirtualhost help
 ```
 
 ## Add virtualhost
